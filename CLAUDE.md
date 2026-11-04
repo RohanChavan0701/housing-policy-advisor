@@ -143,9 +143,13 @@ Six profiles assigned by `_assign_locality_profile()` in priority order:
 - [x] BPS `building_permits_annual` fix — flat-file `co{year}a.txt` replaces broken REST endpoint
 
 ### Active
-1. **Tune profile routing** — same-profile localities share identical pass-2 query sets → similar recs; add per-locality Census-metric differentiation or expand profile-specific query variety
-2. **Corpus: program-level docs** — add LIHTC allocation guides, rental assistance toolkits; recs 4-5 confidence ~0.49-0.54 due to sparse program-level evidence
-3. **URBAN_HIGH_COST profile unvalidated** — no VA locality in current test set meets all 4 thresholds; identify a suitable locality and run
+1. ~~**Tune profile routing**~~ — done in PR #1 (3 new metric-tier tags, pools 13→16 entries per profile)
+2. **Corpus: program-level docs** — 4 new PDFs added to `data/corpus_additions/` (dry-run: +~400 net new chunks expected); **needs ingestion** on the machine with the chroma_db: `python3 -m housing_policy_advisor.rag.ingest --input-dir data/corpus_additions/`
+   - `virginia-housing-2025-qap.pdf` — Virginia Housing 2025 LIHTC QAP (192 chunks)
+   - `hud-home-lihtc-guidebook.pdf` — HUD HOME+LIHTC program guide
+   - `lihtc-home-manual-2024.pdf` — IHDA LIHTC/HOME compliance manual Aug 2024
+   - `hcvp-landlord-recruitment-retention-2024.pdf` — HCV landlord recruitment white paper
+3. **URBAN_HIGH_COST profile unvalidated** — best VA candidate: Alexandria City (pop ~160k, city governance, income ~$95k, likely burden >0.35); run with `--state-fips 51 --county-fips 510 --governance-form city`
 
 ### Backlog
 - `wage_pct25` / `wage_pct75` always None — no county-level ACS percentile source available (known, do not fix without instruction)
