@@ -57,6 +57,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("small locality affordable housing development subsidy", frozenset({"low_supply"})),
         ("manufactured home community infrastructure preservation", frozenset()),
         ("housing counseling rural homeownership", frozenset()),
+        ("moderate cost burden rural low income utility housing assistance", frozenset({"moderate_burden", "low_income"})),
+        ("rapidly growing rural low income county housing capacity infrastructure", frozenset({"growing_pop", "low_supply"})),
+        ("deep poverty rural extremely low income housing subsidy", frozenset({"low_income", "high_burden"})),
     ],
     "RURAL_MODERATE": [
         ("homeowner rehabilitation assistance aging housing rural", frozenset({"aging_housing", "high_income"})),
@@ -72,6 +75,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("regional housing trust fund rural county", frozenset()),
         ("housing counseling rural moderate income", frozenset()),
         ("land bank rural vacant property redevelopment", frozenset()),
+        ("moderate cost burden rural county housing stabilization program", frozenset({"moderate_burden"})),
+        ("growing rural population county housing land use planning", frozenset({"growing_pop", "low_supply"})),
+        ("very high income rural county exclusionary zoning workforce housing", frozenset({"very_high_income", "low_supply"})),
     ],
     "URBAN_HIGH_COST": [
         ("inclusionary zoning mandatory affordable units high cost", frozenset({"high_burden", "high_income"})),
@@ -87,6 +93,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("adaptive reuse aging housing commercial conversion", frozenset({"aging_housing"})),
         ("fee waiver affordable housing development high cost", frozenset()),
         ("public land disposition affordable housing city", frozenset()),
+        ("extremely high cost city deeply affordable housing subsidy extremely low income", frozenset({"very_high_income", "high_burden"})),
+        ("rapidly growing high cost city affordable housing production pipeline", frozenset({"growing_pop", "high_burden"})),
+        ("moderate cost burden transitioning neighborhood displacement prevention city", frozenset({"moderate_burden"})),
     ],
     "URBAN_MODERATE": [
         ("land bank vacant property redevelopment moderate income city", frozenset({"high_vacancy", "low_income"})),
@@ -102,6 +111,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("accessory dwelling units urban zoning reform", frozenset({"low_supply"})),
         ("community land trust urban moderate income", frozenset()),
         ("public land affordable housing urban", frozenset()),
+        ("moderate cost burden urban neighborhood housing stability preservation", frozenset({"moderate_burden", "low_homeownership"})),
+        ("rapidly growing moderate income city zoning housing supply pipeline", frozenset({"growing_pop", "low_supply"})),
+        ("very high income moderate city workforce housing inclusionary", frozenset({"very_high_income", "high_burden"})),
     ],
     "COLLEGE_TOWN": [
         ("student housing partnership affordable rental rapid growth", frozenset({"rapid_growth", "high_income"})),
@@ -117,6 +129,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("rental registry code enforcement college town", frozenset({"aging_housing"})),
         ("community land trust college town affordability", frozenset()),
         ("housing trust fund college town", frozenset()),
+        ("rapidly growing college town student housing land use planning", frozenset({"growing_pop", "rapid_growth"})),
+        ("moderate cost burden college town non-student workforce housing", frozenset({"moderate_burden", "low_homeownership"})),
+        ("very high income college town exclusionary zoning workforce land trust", frozenset({"very_high_income", "high_burden"})),
     ],
     "SUBURBAN_GROWING": [
         ("workforce housing fast growing county suburb high income", frozenset({"rapid_growth", "high_income"})),
@@ -132,6 +147,9 @@ PROFILE_POLICY_QUERIES: Dict[str, List[TaggedQuery]] = {
         ("home repair preservation aging suburban housing", frozenset({"aging_housing"})),
         ("inclusionary zoning suburban mixed income", frozenset()),
         ("public land affordable housing suburban county", frozenset()),
+        ("exclusionary zoning reform very high income suburb workforce housing", frozenset({"very_high_income", "rapid_growth"})),
+        ("moderate cost burden suburban county first-time buyer assistance", frozenset({"moderate_burden"})),
+        ("rapidly growing suburb population pressure housing land use capacity", frozenset({"growing_pop", "low_supply"})),
     ],
 }
 
@@ -221,6 +239,20 @@ def _compute_locality_tags(locality: FullLocalityInput, profile: str) -> FrozenS
         tags.add("high_income")
     if locality.pct_built_pre_1980 is not None and locality.pct_built_pre_1980 > 0.55:
         tags.add("aging_housing")
+
+    if locality.median_household_income is not None and locality.median_household_income > 100_000:
+        tags.add("very_high_income")
+    if (
+        locality.cost_burden_rate is not None
+        and locality.cost_burden_rate > 0.30
+        and locality.cost_burden_rate <= 0.42
+    ):
+        tags.add("moderate_burden")
+    if (
+        locality.avg_annual_population_rate_of_change is not None
+        and locality.avg_annual_population_rate_of_change > 1.5
+    ):
+        tags.add("growing_pop")
 
     return frozenset(tags)
 
