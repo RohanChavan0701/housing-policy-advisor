@@ -1,5 +1,12 @@
 # CLAUDE.md
 
+## Rules for Playbook work
+- Never run ingestion with --reset.
+- Never modify files under data/playbook/raw/.
+- Every new module needs a test under tests/ with mocked LLM and Chroma.
+- Stop at the end of each plan phase and wait for review.
+- No em dashes in docs or prompts.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands

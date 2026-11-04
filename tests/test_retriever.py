@@ -167,6 +167,70 @@ def test_queries_for_profile_keeps_universal_queries_and_removes_numeric_suffix(
     assert not any("median income" in query or "cost burden 48" in query for query in queries)
 
 
+def test_compute_locality_tags_new_metric_tiers():
+    from housing_policy_advisor.rag.retriever import _compute_locality_tags
+
+    very_high = _locality(median_household_income=105_000)
+    tags = _compute_locality_tags(very_high, "SUBURBAN_GROWING")
+    assert "very_high_income" in tags
+    assert "high_income" in tags
+
+    moderate_burden = _locality(cost_burden_rate=0.35)
+    tags = _compute_locality_tags(moderate_burden, "SUBURBAN_GROWING")
+    assert "moderate_burden" in tags
+    assert "high_burden" not in tags
+
+    at_boundary = _locality(cost_burden_rate=0.30)
+    tags = _compute_locality_tags(at_boundary, "SUBURBAN_GROWING")
+    assert "moderate_burden" not in tags
+
+    growing = _locality(avg_annual_population_rate_of_change=2.0)
+    tags = _compute_locality_tags(growing, "SUBURBAN_GROWING")
+    assert "growing_pop" in tags
+
+    flat = _locality(avg_annual_population_rate_of_change=1.5)
+    tags = _compute_locality_tags(flat, "SUBURBAN_GROWING")
+    assert "growing_pop" not in tags
+
+
+def test_select_queries_differentiates_suburban_growing_by_income_tier():
+    from housing_policy_advisor.rag.retriever import _select_queries
+
+    very_high_income = _locality(
+        population_estimate=90_000,
+        median_household_income=110_000,
+        governance_form="county",
+        building_permits_annual=600,
+    )
+    high_income = _locality(
+        population_estimate=90_000,
+        median_household_income=85_000,
+        governance_form="county",
+        building_permits_annual=600,
+    )
+
+    assert _select_queries("SUBURBAN_GROWING", very_high_income) != _select_queries("SUBURBAN_GROWING", high_income)
+
+
+def test_select_queries_differentiates_rural_moderate_by_growth():
+    from housing_policy_advisor.rag.retriever import _select_queries
+
+    growing = _locality(
+        population_estimate=40_000,
+        median_household_income=58_000,
+        avg_annual_population_rate_of_change=2.1,
+        building_permits_annual=50,
+    )
+    static = _locality(
+        population_estimate=40_000,
+        median_household_income=58_000,
+        avg_annual_population_rate_of_change=0.3,
+        building_permits_annual=50,
+    )
+
+    assert _select_queries("RURAL_MODERATE", growing) != _select_queries("RURAL_MODERATE", static)
+
+
 @patch("housing_policy_advisor.rag.retriever._persistent_client")
 def test_retrieve_classifier_chunks_uses_policy_class_where_filter(mock_client):
     collection = MagicMock()
